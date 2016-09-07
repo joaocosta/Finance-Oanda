@@ -39,9 +39,6 @@ sub _send_request {
     return $self->_ua->request($req);
 }
 
-sub BUILD {
-}
-
 sub getAsk {
     my ($self, $symbol) = @_;
 
@@ -56,11 +53,20 @@ sub getAsk {
 sub getBid {
     my ($self, $symbol) = @_;
 
+    my $url = $self->_api_endpoint->as_string() . "/accounts/" . $self->account_id . "/pricing?instruments=" . $symbol;
+    my $response = $self->_send_request(GET => $url);
+    my $response_object = decode_json( $response->decoded_content);
+
+    return $response_object->{prices}->[0]->{closeoutBid};
 }
 
 sub openMarket {
     my ($self, $direction, $amount) = @_;
 
+    my %order = (
+        type => 'MARKET',
+        instrument => $symbol,
+        units => $amount * ($direction eq 'long' ? 1 : -1),
 }
 
 sub closeMarket {
@@ -68,12 +74,15 @@ sub closeMarket {
 }
 
 sub getTrades {
+    my ($self) = @_;
+
 }
 
 sub getBalance {
 }
 
 sub getMinTradeSize {
+    return 1;
 }
 
 1;
